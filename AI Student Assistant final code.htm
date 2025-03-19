@@ -1,0 +1,398 @@
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Student Assistance Website</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css"></link>
+    <link href="https://fonts.googleapis.com/css2?family=Mate+SC&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Mate SC', serif;
+            background-image: url('https://i.pinimg.com/736x/a5/ec/bd/a5ecbdf9862f382c3ab085964ad591a0.jpg');
+            background-size: cover;
+            background-repeat: no-repeat;
+            background-attachment: fixed;
+            background-position: center bottom;
+        }
+        .hidden { display: none; }
+        .task-date { background-color: #ffcccb; } /* Light pink */
+        .completed-task-date { background-color: #d8bfd8; } /* Lilac */
+        .flashcard { border: 2px solid purple; background-color: turquoise; color: black; padding: 16px; margin: 8px; }
+        .transparent-box {
+            background-color: rgba(255, 255, 255, 0.8); /* White with 80% opacity */
+        }
+        #mainContent {
+            background-image: url('https://i.pinimg.com/736x/02/90/ed/0290eda2c6171761f9ff1486fd7f350b.jpg');
+            background-size: cover;
+            background-repeat: no-repeat;
+            background-attachment: fixed;
+            background-position: center bottom;
+        }
+        .logout-button {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+        }
+        .todo-table {
+            max-width: 600px;
+            margin: 0 auto;
+        }
+    </style>
+</head>
+<body>
+    <div id="loginPage" class="flex flex-col items-center h-screen justify-center">
+        <div class="transparent-box p-8 rounded shadow-md text-center">
+            <h1 class="text-4xl font-bold mb-4">AI Student Assistance</h1>
+            <div class="mb-4">
+                <input id="email" type="email" class="border p-2 w-full" placeholder="Email">
+            </div>
+            <div class="mb-4">
+                <input id="password" type="password" class="border p-2 w-full" placeholder="Password">
+            </div>
+            <button onclick="loginOrCreateAccount()" class="bg-blue-500 text-white px-4 py-2">Login / Create Account</button>
+        </div>
+    </div>
+
+    <div id="mainContent" class="hidden flex flex-col items-center h-screen relative">
+        <div class="logout-button">
+            <a href="#" onclick="logout()" class="text-blue-600 text-lg font-semibold">Logout</a>
+        </div>
+        <div class="flex justify-center items-center flex-grow">
+            <div class="text-center">
+                <h1 class="text-4xl font-bold text-white">Welcome to AI Student Assistance Website</h1>
+                <p class="text-xl text-white">
+                    Hello, <span id="userEmail"></span>!
+                </p>
+                <div class="transparent-box shadow-md mt-8">
+                    <ul class="flex justify-center space-x-1 py-4">
+                        <li><a href="#" onclick="showTab('todo')" class="text-lg font-semibold text-gray-700 hover:text-blue-600">Todo</a></li>
+                        <li><a href="#" onclick="showTab('pomodoro')" class="text-lg font-semibold text-gray-700 hover:text-blue-600">Pomodoro</a></li>
+                        <li><a href="#" onclick="showTab('calendar')" class="text-lg font-semibold text-gray-700 hover:text-blue-600">Calendar</a></li>
+                        <li><a href="#" onclick="showTab('flashcard')" class="text-lg font-semibold text-gray-700 hover:text-blue-600">Flashcard</a></li>
+                    </ul>
+                </div>
+                <div id="todo" class="hidden mt-8">
+                    <h2 class="text-2xl font-bold mb-4">Todo List</h2>
+                    <div class="mb-4">
+                        <input id="taskInput" type="text" class="border p-2" placeholder="Add a new task">
+                        <button onclick="addTask()" class="bg-blue-500 text-white px-4 py-2">Add</button>
+                    </div>
+                    <table class="min-w-full bg-white todo-table">
+                        <thead>
+                            <tr>
+                                <th class="py-2">Task</th>
+                            </tr>
+                        </thead>
+                        <tbody id="taskList"></tbody>
+                    </table>
+                </div>
+                <div id="pomodoro" class="hidden mt-8">
+                    <h2 class="text-2xl font-bold mb-4">Pomodoro Timer</h2>
+                    <div class="mb-4">
+                        <input id="pomodoroInput" type="number" class="border p-2" placeholder="Set time in minutes">
+                        <button onclick="startPomodoro()" class="bg-blue-500 text-white px-4 py-2">Start</button>
+                        <button onclick="pausePomodoro()" class="bg-yellow-500 text-white px-4 py-2">Pause</button>
+                        <button onclick="resumePomodoro()" class="bg-green-500 text-white px-4 py-2">Resume</button>
+                        <button onclick="endPomodoro()" class="bg-red-500 text-white px-4 py-2">End</button>
+                    </div>
+                    <div id="pomodoroTimer" class="text-2xl font-bold"></div>
+                </div>
+                <div id="calendar" class="hidden mt-8">
+                    <h2 class="text-2xl font-bold mb-4">Calendar</h2>
+                    <div class="mb-4">
+                        <input id="calendarInput" type="date" class="border p-2">
+                        <input id="taskInputCalendar" type="text" class="border p-2" placeholder="Add an important task">
+                        <button onclick="addCalendarTask()" class="bg-blue-500 text-white px-4 py-2">Add</button>
+                    </div>
+                    <ul id="calendarTaskList" class="list-decimal list-inside"></ul>
+                </div>
+                <div id="flashcard" class="hidden mt-8">
+                    <h2 class="text-2xl font-bold mb-4">Flashcard Generator</h2>
+                    <div class="mb-4">
+                        <textarea id="flashcardInput" class="border p-2 w-full" rows="4" placeholder="Enter text to summarize"></textarea>
+                        <button onclick="generateFlashcard()" class="bg-blue-500 text-white px-4 py-2">Generate Flashcard</button>
+                    </div>
+                    <div id="flashcardContainer"></div>
+                    <div class="mt-4">
+                        <button onclick="window.location.href='https://www.memrizz.com/'" class="bg-green-500 text-white px-4 py-2">Make Your Own Flashcard</button>
+                    </div>
+                </div>
+                    <div id="flashcardContainer"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let pomodoroInterval;
+        let remainingTime;
+        let isPaused = false;
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const loggedInUser = localStorage.getItem('loggedInUser');
+            if (loggedInUser) {
+                document.getElementById('loginPage').classList.add('hidden');
+                document.getElementById('mainContent').classList.remove('hidden');
+                document.getElementById('userEmail').textContent = loggedInUser;
+                loadCalendarTasks();
+            }
+        });
+
+        function loginOrCreateAccount() {
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+
+            if (email && password) {
+                const storedPassword = localStorage.getItem(email);
+
+                if (storedPassword) {
+                    if (storedPassword === password) {
+                        localStorage.setItem('loggedInUser', email);
+                        document.getElementById('loginPage').classList.add('hidden');
+                        document.getElementById('mainContent').classList.remove('hidden');
+                        document.getElementById('userEmail').textContent = email;
+                        loadCalendarTasks();
+                    } else {
+                        alert('Invalid password');
+                    }
+                } else {
+                    localStorage.setItem(email, password);
+                    localStorage.setItem('loggedInUser', email);
+                    document.getElementById('loginPage').classList.add('hidden');
+                    document.getElementById('mainContent').classList.remove('hidden');
+                    document.getElementById('userEmail').textContent = email;
+                }
+            } else {
+                alert('Please fill in all fields.');
+            }
+        }
+
+        function logout() {
+            localStorage.removeItem('loggedInUser');
+            document.getElementById('mainContent').classList.add('hidden');
+            document.getElementById('loginPage').classList.remove('hidden');
+        }
+
+        function showTab(tabId) {
+            document.getElementById('todo').classList.add('hidden');
+            document.getElementById('pomodoro').classList.add('hidden');
+            document.getElementById('calendar').classList.add('hidden');
+            document.getElementById('flashcard').classList.add('hidden');
+            if (tabId === 'todo') {
+                document.getElementById('todo').classList.remove('hidden');
+            } else if (tabId === 'pomodoro') {
+                document.getElementById('pomodoro').classList.remove('hidden');
+            } else if (tabId === 'calendar') {
+                document.getElementById('calendar').classList.remove('hidden');
+            } else if (tabId === 'flashcard') {
+                document.getElementById('flashcard').classList.remove('hidden');
+            }
+        }
+
+        function addTask() {
+            const taskInput = document.getElementById('taskInput');
+            const taskList = document.getElementById('taskList');
+            const taskText = taskInput.value.trim();
+
+            if (taskText !== '') {
+                const tr = document.createElement('tr');
+                tr.className = 'border-t border-black';
+                tr.innerHTML = `
+                    <td class="py-2 px-4">${taskText}</td>
+                    <td class="py-2 px-4">
+                        <button onclick="editTask(this)" class="bg-yellow-500 text-white px-2 py-1 mr-2">Edit</button>
+                        <button onclick="deleteTask(this)" class="bg-red-500 text-white px-2 py-1">Delete</button>
+                    </td>
+                `;
+                taskList.appendChild(tr);
+                taskInput.value = '';
+            }
+        }
+
+        function editTask(button) {
+            const tr = button.parentElement.parentElement;
+            const taskText = tr.querySelector('td').innerText;
+            const newTaskText = prompt('Edit task:', taskText);
+
+            if (newTaskText !== null && newTaskText.trim() !== '') {
+                tr.querySelector('td').innerText = newTaskText.trim();
+            }
+        }
+
+        function deleteTask(button) {
+            const tr = button.parentElement.parentElement;
+            tr.remove();
+        }
+
+        function startPomodoro() {
+            const pomodoroInput = document.getElementById('pomodoroInput');
+            const pomodoroTimer = document.getElementById('pomodoroTimer');
+            let time = parseInt(pomodoroInput.value) * 60;
+
+            if (isNaN(time) || time <= 0) {
+                alert('Please enter a valid number of minutes.');
+                return;
+            }
+
+            remainingTime = time;
+            isPaused = false;
+
+            pomodoroInterval = setInterval(() => {
+                if (!isPaused) {
+                    const minutes = Math.floor(remainingTime / 60);
+                    const seconds = remainingTime % 60;
+                    pomodoroTimer.textContent = `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
+                    remainingTime--;
+
+                    if (remainingTime < 0) {
+                        clearInterval(pomodoroInterval);
+                        alert('Time is up!');
+                    }
+                }
+            }, 1000);
+        }
+
+        function pausePomodoro() {
+            isPaused = true;
+        }
+
+        function resumePomodoro() {
+            isPaused = false;
+        }
+
+        function endPomodoro() {
+            clearInterval(pomodoroInterval);
+            document.getElementById('pomodoroTimer').textContent = '';
+        }
+
+        function addCalendarTask() {
+            const calendarInput = document.getElementById('calendarInput').value;
+            const taskInputCalendar = document.getElementById('taskInputCalendar').value.trim();
+            const calendarTaskList = document.getElementById('calendarTaskList');
+
+            if (calendarInput && taskInputCalendar) {
+                const li = document.createElement('li');
+                li.className = 'flex justify-between items-center mb-2';
+                li.innerHTML = `
+                    <span>${calendarInput}: ${taskInputCalendar}</span>
+                    <div>
+                        <button onclick="editCalendarTask(this)" class="bg-yellow-500 text-white px-2 py-1 mr-2">Edit</button>
+                        <button onclick="deleteCalendarTask(this)" class="bg-red-500 text-white px-2 py-1">Delete</button>
+                        <button onclick="markCompleted(this)" class="bg-green-500 text-white px-2 py-1">Complete</button>
+                    </div>
+                `;
+                calendarTaskList.appendChild(li);
+                saveCalendarTasks();
+                document.getElementById('taskInputCalendar').value = '';
+                markTaskDate(calendarInput, 'task-date');
+            }
+        }
+
+        function deleteCalendarTask(button) {
+            const li = button.parentElement.parentElement;
+            const taskText = li.querySelector('span').innerText;
+            const date = taskText.split(':')[0];
+            li.remove();
+            saveCalendarTasks();
+            unmarkTaskDate(date);
+        }
+
+        function editCalendarTask(button) {
+            const li = button.parentElement.parentElement;
+            const taskText = li.querySelector('span').innerText;
+            const newTaskText = prompt('Edit task:', taskText);
+
+            if (newTaskText !== null && newTaskText.trim() !== '') {
+                li.querySelector('span').innerText = newTaskText.trim();
+                saveCalendarTasks();
+            }
+        }
+
+        function markCompleted(button) {
+            const li = button.parentElement.parentElement;
+            const taskText = li.querySelector('span').innerText;
+            const date = taskText.split(':')[0];
+            li.classList.add('completed-task-date');
+            saveCalendarTasks();
+            markTaskDate(date, 'completed-task-date');
+        }
+
+        function saveCalendarTasks() {
+            const calendarTaskList = document.getElementById('calendarTaskList');
+            const tasks = [];
+            calendarTaskList.querySelectorAll('li').forEach(li => {
+                tasks.push({
+                    text: li.querySelector('span').innerText,
+                    completed: li.classList.contains('completed-task-date')
+                });
+            });
+            localStorage.setItem('calendarTasks', JSON.stringify(tasks));
+        }
+
+        function loadCalendarTasks() {
+            const tasks = JSON.parse(localStorage.getItem('calendarTasks')) || [];
+            const calendarTaskList = document.getElementById('calendarTaskList');
+            calendarTaskList.innerHTML = '';
+            tasks.forEach(task => {
+                const li = document.createElement('li');
+                li.className = 'flex justify-between items-center mb-2';
+                if (task.completed) {
+                    li.classList.add('completed-task-date');
+                }
+                li.innerHTML = `
+                    <span>${task.text}</span>
+                    <div>
+                        <button onclick="editCalendarTask(this)" class="bg-yellow-500 text-white px-2 py-1 mr-2">Edit</button>
+                        <button onclick="deleteCalendarTask(this)" class="bg-red-500 text-white px-2 py-1">Delete</button>
+                        <button onclick="markCompleted(this)" class="bg-green-500 text-white px-2 py-1">Complete</button>
+                    </div>
+                `;
+                calendarTaskList.appendChild(li);
+                const date = task.text.split(':')[0];
+                markTaskDate(date, task.completed ? 'completed-task-date' : 'task-date');
+            });
+        }
+
+        function markTaskDate(date, className) {
+            const calendarInput = document.getElementById('calendarInput');
+            const dateElement = document.querySelector(`input[type="date"][value="${date}"]`);
+            if (dateElement) {
+                dateElement.classList.add(className);
+            }
+        }
+
+        function unmarkTaskDate(date) {
+            const dateElement = document.querySelector(`input[type="date"][value="${date}"]`);
+            if (dateElement) {
+                dateElement.classList.remove('task-date', 'completed-task-date');
+            }
+        }
+
+        async function generateFlashcard() {
+            const flashcardInput = document.getElementById('flashcardInput').value.trim();
+            if (flashcardInput) {
+                const summary = await summarizeText(flashcardInput);
+                const flashcardContainer = document.getElementById('flashcardContainer');
+                const flashcard = document.createElement('div');
+                flashcard.className = 'flashcard';
+                flashcard.innerText = summary;
+                flashcardContainer.appendChild(flashcard);
+            }
+        }
+
+        async function summarizeText(text) {
+            const response = await fetch('https://api-inference.huggingface.co/models/bert', {
+                method: 'POST',
+                headers: {
+                    'Authorization': 'Bearer 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',
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ inputs: text })
+            });
+            const data = await response.json();
+            return data[0].summary_text;
+        }
+    </script>
+</body>
+</html>
